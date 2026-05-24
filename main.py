@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from routes.orders import router as orders_router
-from recipes import recipes
+from data.recipes import recipes
 
 app = FastAPI()
 

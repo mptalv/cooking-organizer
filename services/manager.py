@@ -2,6 +2,8 @@
 # KITCHEN MANAGER
 # =========================
 
+from data.recipes import recipes
+
 class KitchenManager:
 
     def calculate_ingredients(self, order):
@@ -38,15 +40,36 @@ class KitchenManager:
 
         return tasks
     
-    def process_sample_order(self):
+    def process_order(self, recipe_name, quantity):
+
+        recipe = None
+
+        for r in recipes:
+            if r["name"] == recipe_name:
+                recipe = r
+
+        if not recipe:
+            return {
+                "error": "Recipe not found"
+            }
+
+        ingredient_totals = []
+
+        for ingredient in recipe["ingredients"]:
+
+            total_quantity = (
+                ingredient["quantity"] * quantity
+            )
+
+            ingredient_totals.append({
+                "name": ingredient["name"],
+                "quantity": total_quantity,
+                "unit": ingredient["unit"]
+            })
 
         return {
-            "ingredients": {
-                "Flour": 6,
-                "Eggs": 8
-            },
-            "tasks": [
-                "Bake cake",
-                "Prepare frosting"
-            ]
+            "recipe": recipe_name,
+            "quantity": quantity,
+            "ingredients": ingredient_totals,
+            "tasks": recipe["tasks"]
         }
