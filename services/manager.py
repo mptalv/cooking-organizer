@@ -1,3 +1,7 @@
+# =========================
+# KITCHEN MANAGER
+# =========================
+
 class KitchenManager:
 
     def calculate_ingredients(self, order):
@@ -33,3 +37,16 @@ class KitchenManager:
                 tasks.append(f"- {task}")
 
         return tasks
+    
+    def process_sample_order(self):
+
+        return {
+            "ingredients": {
+                "Flour": 6,
+                "Eggs": 8
+            },
+            "tasks": [
+                "Bake cake",
+                "Prepare frosting"
+            ]
+        }
