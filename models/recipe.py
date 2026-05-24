@@ -12,6 +12,3 @@ class Recipe:
     def add_ingredient(self, ingredient):
         self.ingredients.append(ingredient)
 
-    def add_task(self, task):
-        self.tasks.append(task)
-
