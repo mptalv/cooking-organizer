@@ -31,6 +31,22 @@ recipes = [
             "ladyfingers",
             "cocoa powder"
         ]
+    },
+    {
+        "name" : "lemon cookies",
+        "ingredients" : [
+            "flour",
+            "cornstarch",
+            "baking soda",
+            "salt",
+            "butter",
+            "sugar",
+            "eggs",
+            "lemon juice",
+            "lemon zest",
+            "vanilla extract",
+            "powdered sugar"
+        ]
     }
 ]
 
