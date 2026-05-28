@@ -1,52 +1,86 @@
-# =========================
-# KITCHEN MANAGER
-# =========================
+from sqlalchemy.orm import Session
+
+from database.models import Ingredient
+from database.models import Order
+from database.models import Recipe
+from database.models import RecipeIngredient
 
 from data.recipes import recipes
 
 class KitchenManager:
 
-    def calculate_ingredients(self, order):
+    def create_recipe(self, db: Session, recipe_data):
 
-        totals = {}
+        recipe = Recipe(
+            name=recipe_data.name
+        )
 
-        for recipe, quantity in order.items.items():
+        db.add(recipe)
+        db.commit()
+        db.refresh(recipe)
 
-            for ingredient in recipe.ingredients:
+        for ingredient_data in recipe_data.ingredients:
 
-                total_amount = ingredient.scaled_amount(quantity)
+            ingredient = db.query(Ingredient).filter(
+                Ingredient.name == ingredient_data.name
+            ).first()
 
-                key = f"{ingredient.name} ({ingredient.unit})"
+            if not ingredient:
+                ingredient = Ingredient(
+                    name=ingredient_data.name,
+                    unit=ingredient_data.unit
+                )
 
-                if key in totals:
-                    totals[key] += total_amount
-                else:
-                    totals[key] = total_amount
+                db.add(ingredient)
+                db.commit()
+                db.refresh(ingredient)
 
-        return totals
-
-    def generate_tasks(self, order):
-
-        tasks = []
-
-        for recipe, quantity in order.items.items():
-
-            tasks.append(
-                f"Prepare {quantity} batch(es) of {recipe.name}"
+            recipe_ingredient = RecipeIngredient(
+                recipe_id=recipe.id,
+                ingredient_id=ingredient.id,
+                quantity=ingredient_data.quantity
             )
 
-            for task in recipe.tasks:
-                tasks.append(f"- {task}")
+            db.add(recipe_ingredient)
 
-        return tasks
+        db.commit()
+
+        return {
+            "message": "Recipe created",
+            "recipe": recipe.name
+        }
+
+    def get_recipes(self, db: Session):
+
+        recipes = db.query(Recipe).all()
+
+        results = []
+
+        for recipe in recipes:
+
+            ingredient_list = []
+
+            for item in recipe.ingredients:
+
+                ingredient_list.append({
+                    "name": item.ingredient.name,
+                    "quantity": item.quantity,
+                    "unit": item.ingredient.unit
+                })
+
+            results.append({
+                "id": recipe.id,
+                "name": recipe.name,
+                "ingredients": ingredient_list
+            })
+
+        return results
     
-    def process_order(self, recipe_name, quantity):
+    def process_order(self, db: Session, order_data):
 
-        recipe = None
-
-        for r in recipes:
-            if r["name"] == recipe_name:
-                recipe = r
+        recipe = db.query(Recipe).filter(
+            Recipe.name == order_data.recipe_name
+        ).first()
 
         if not recipe:
             return {
@@ -55,21 +89,36 @@ class KitchenManager:
 
         ingredient_totals = []
 
-        for ingredient in recipe["ingredients"]:
+        for item in recipe.ingredients:
 
             total_quantity = (
-                ingredient["quantity"] * quantity
+                item.quantity * order_data.quantity
             )
 
             ingredient_totals.append({
-                "name": ingredient["name"],
+                "name": item.ingredient.name,
                 "quantity": total_quantity,
-                "unit": ingredient["unit"]
+                "unit": item.ingredient.unit
             })
 
+        tasks = [
+            f"Gather ingredients for {recipe.name}",
+            f"Prepare {order_data.quantity} batch(es)",
+            f"Cook/Bake {recipe.name}",
+            "Package order"
+        ]
+
+        order = Order(
+            recipe_name=order_data.recipe_name,
+            quantity=order_data.quantity
+        )
+
+        db.add(order)
+        db.commit()
+
         return {
-            "recipe": recipe_name,
-            "quantity": quantity,
+            "recipe": recipe.name,
+            "quantity": order_data.quantity,
             "ingredients": ingredient_totals,
-            "tasks": recipe["tasks"]
+            "tasks": tasks
         }
