@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
-class OrderRequest(BaseModel):
+
+class OrderCreate(BaseModel):
     recipe_name: str
     quantity: int
