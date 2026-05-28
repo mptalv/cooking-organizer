@@ -1,6 +1,10 @@
 from fastapi import APIRouter
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+from database.database import get_db
+from schemas.order_schema import OrderCreate
 from services.manager import KitchenManager
-from schemas.order_schema import OrderRequest
 
 router = APIRouter()
 
@@ -8,11 +12,9 @@ manager = KitchenManager()
 
 
 @router.post("/orders")
-def create_order(order: OrderRequest):
+def create_order(
+    order: OrderCreate,
+    db: Session = Depends(get_db)
+):
 
-    result = manager.process_order(
-        order.recipe_name,
-        order.quantity
-    )
-
-    return result
+    return manager.process_order(db, order)
